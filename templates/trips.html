@@ -41,16 +41,8 @@
             <td>{{ trip.end_time }}</td>
 
             <td>
-                {% if now < trip.start_time %}
-                    <span class="badge bg-warning text-dark">Chưa bắt đầu</span>
-
-                {% elif now >= trip.start_time and now <= trip.end_time %}
-                    <span class="badge bg-primary">Đang chạy</span>
-
-                {% else %}
-                    <span class="badge bg-success">Hoàn thành</span>
-                {% endif %}
-            </td>
+            <span class="badge bg-secondary">Chuyến đi</span>
+                </td>
 
             <td>
                 <a href="/edit_trip/{{ trip.trip_id }}" class="btn btn-sm btn-primary">Sửa</a>

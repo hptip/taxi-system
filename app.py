@@ -208,11 +208,12 @@ def trips():
 
     cursor.execute("""
     SELECT t.trip_id,
-           d.name as driver_name,
-           t.pickup_location,
-           t.dropoff_location,
-           t.start_time,
-           t.end_time
+        d.name as driver_name,
+        c.plate_number as license_plate,
+        t.pickup_location,
+        t.dropoff_location,
+        t.start_time,
+        t.end_time
     FROM Trips t
     JOIN Drivers d ON t.driver_id = d.driver_id
     JOIN Cars c ON t.car_id = c.car_id
