@@ -16,7 +16,6 @@ def get_db():
 
 
 # Trang chủ - hiển thị danh sách lái xe
-from flask import render_template
 
 @app.route("/")
 def home():
@@ -257,9 +256,6 @@ def add_trip():
             flash("Xe đang hỏng hoặc bảo dưỡng!", "danger")
             conn.close()
             return redirect("/add_trip")
-        #Tai xe da co chuyen
-        
-        #Xe da co chuyen
         
         
         #Check trung chuyen
@@ -369,5 +365,4 @@ def edit_trip(id):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
-
+    app.run()
