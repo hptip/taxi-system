@@ -1,19 +1,18 @@
 from flask import Flask, render_template, request, redirect, flash
-import pyodbc
+import sqlite3
 
 from datetime import datetime
 app = Flask(__name__)
 app.secret_key = "taxi_secret"
 
 
-conn = pyodbc.connect(
-    "DRIVER={ODBC Driver 17 for SQL Server};"
-    "SERVER=LAPTOP-3GT9SESD\\SQLEXPRESS;"
-    "DATABASE=TaxiManagement;"
-    "Trusted_Connection=yes;"
-)
+def get_db():
+    conn = sqlite3.connect("taxi.db")
+    conn.row_factory = sqlite3.Row
+    return conn
 
-cursor = conn.cursor()
+
+
 
 
 # Trang chủ - hiển thị danh sách lái xe
@@ -21,6 +20,8 @@ from flask import render_template
 
 @app.route("/")
 def home():
+    conn = get_db()
+    cursor = conn.cursor()
 
     cursor.execute("SELECT COUNT(*) FROM Drivers")
     driver_count = cursor.fetchone()[0]
@@ -30,6 +31,7 @@ def home():
 
     cursor.execute("SELECT COUNT(*) FROM Trips")
     trip_count = cursor.fetchone()[0]
+    conn.close()
 
     return render_template(
         "home.html",
@@ -40,8 +42,12 @@ def home():
 
 @app.route("/drivers")
 def index():
+    conn = get_db()
+    cursor = conn.cursor()
+
     cursor.execute("SELECT * FROM Drivers")
     drivers = cursor.fetchall()
+    conn.close()
     return render_template("index.html", drivers=drivers)
 
 
@@ -50,6 +56,9 @@ def index():
 # Thêm lái xe
 @app.route("/add", methods=["GET","POST"])
 def add_driver():
+    conn = get_db()
+    cursor = conn.cursor()
+
 
     if request.method == "POST":
 
@@ -64,25 +73,33 @@ def add_driver():
         )
 
         conn.commit()
+        conn.close()
 
-        return redirect("/")
-
+        return redirect("/drivers")
+    conn.close()
     return render_template("add_driver.html")
 
 
 # Xóa lái xe
 @app.route("/delete/<id>")
 def delete_driver(id):
+    conn = get_db()
+    cursor = conn.cursor()
+
 
     cursor.execute("DELETE FROM Drivers WHERE driver_id=?", (id,))
     conn.commit()
+    conn.close()
 
-    return redirect("/")
+    return redirect("/drivers")
 
 
 # Sửa lái xe
 @app.route("/edit/<id>",methods=["GET","POST"])
 def edit_driver(id):
+    conn = get_db()
+    cursor = conn.cursor()
+
 
     if request.method=="POST":
 
@@ -97,25 +114,34 @@ def edit_driver(id):
         )
 
         conn.commit()
+        conn.close()
 
-        return redirect("/")
+        return redirect("/drivers")
 
     cursor.execute("SELECT * FROM Drivers WHERE driver_id=?", (id,))
     driver=cursor.fetchone()
+    conn.close()
 
     return render_template("edit_driver.html",driver=driver)
 #Hien thi danh sach xe
 @app.route("/cars")
 def cars():
+    conn = get_db()
+    cursor = conn.cursor()
+
 
     cursor.execute("SELECT * FROM Cars")
     cars = cursor.fetchall()
+    conn.close()
 
     return render_template("cars.html", cars=cars)
 
 #Them xe
 @app.route("/add_car", methods=["GET","POST"])
 def add_car():
+    conn = get_db()
+    cursor = conn.cursor()
+
 
     if request.method == "POST":
 
@@ -129,13 +155,16 @@ def add_car():
         )
 
         conn.commit()
-
+        conn.close()
         return redirect("/cars")
-
+    conn.close()
     return render_template("add_car.html")
 #Sua xe
 @app.route("/edit_car/<id>", methods=["GET","POST"])
 def edit_car(id):
+    conn = get_db()
+    cursor = conn.cursor()
+
 
     if request.method == "POST":
 
@@ -149,26 +178,34 @@ def edit_car(id):
         )
 
         conn.commit()
+        conn.close()
 
         return redirect("/cars")
 
-    cursor.execute("SELECT * FROM Cars WHERE car_id=?",id)
+    cursor.execute("SELECT * FROM Cars WHERE car_id=?", (id,))
     car = cursor.fetchone()
-
+    conn.close()
     return render_template("edit_car.html", car=car)
 
 
 #Xoa xe
 @app.route("/delete_car/<id>")
 def delete_car(id):
+    conn = get_db()
+    cursor = conn.cursor()
+
 
     cursor.execute("DELETE FROM Cars WHERE car_id=?", (id,))
     conn.commit()
+    conn.close()
 
     return redirect("/cars")
 #Danh sach chuyen di
 @app.route("/trips")
 def trips():
+    conn = get_db()
+    cursor = conn.cursor()
+
 
     cursor.execute("""
     SELECT t.trip_id,
@@ -183,12 +220,15 @@ def trips():
     """)
 
     trips = cursor.fetchall()
-
+    conn.close()
     return render_template("trips.html", trips=trips, now=datetime.now())
 
 #Them chuyen di
 @app.route("/add_trip", methods=["GET","POST"])
 def add_trip():
+    conn = get_db()
+    cursor = conn.cursor()
+
 
     if request.method == "POST":
 
@@ -207,6 +247,7 @@ def add_trip():
 
         if driver_status != "Khỏe":
             flash("Tài xế đang ốm hoặc nghỉ, không thể tạo chuyến!", "danger")
+            conn.close()
             return redirect("/add_trip")
         #Xe hong hoac bao duong
         cursor.execute("SELECT status FROM Cars WHERE car_id=?", (car_id,))
@@ -214,35 +255,12 @@ def add_trip():
 
         if car_status != "Hoạt động":
             flash("Xe đang hỏng hoặc bảo dưỡng!", "danger")
+            conn.close()
             return redirect("/add_trip")
         #Tai xe da co chuyen
-        cursor.execute("""
-        SELECT * FROM Trips
-        WHERE driver_id=?
-        AND (
-            (? < end_time) AND (? > start_time)
-        )
-        """, (driver_id, start_time, end_time))
-
-        exist = cursor.fetchone()
-
-        if exist:
-            flash("Tài xế đã có chuyến trong khoảng thời gian này.","danger")
-            return redirect("/add_trip")
+        
         #Xe da co chuyen
-        cursor.execute("""
-        SELECT * FROM Trips
-        WHERE driver_id=?
-        AND (
-            (? < end_time) AND (? > start_time)
-        )
-        """, (driver_id, start_time, end_time))
-
-        exist = cursor.fetchone()
-
-        if exist:
-            flash("Tài xế đã có chuyến trong khoảng thời gian này.","danger")
-            return redirect("/add_trip")
+        
         
         #Check trung chuyen
         cursor.execute("""
@@ -261,7 +279,21 @@ def add_trip():
             if start_time < old_end and end_time > old_start:
 
                 flash("Tài xế đã có chuyến trong khoảng thời gian này!", "danger")
+                conn.close()
                 return redirect("/add_trip")
+        #Xe trung chuyen
+        cursor.execute("""
+        SELECT * FROM Trips
+        WHERE car_id=?
+        AND (? < end_time AND ? > start_time)
+        """, (car_id, start_time, end_time))
+
+        exist_car = cursor.fetchone()
+
+        if exist_car:
+            flash("Xe đang có chuyến trong khoảng thời gian này!", "danger")
+            conn.close()
+            return redirect("/add_trip")
 
         cursor.execute(
         """INSERT INTO Trips(driver_id,car_id,pickup_location,dropoff_location,start_time,end_time)
@@ -272,6 +304,7 @@ def add_trip():
         conn.commit()
 
         flash("Tạo chuyến đi thành công!", "success")
+        conn.close()
         return redirect("/trips")
 
     cursor.execute("SELECT * FROM Drivers")
@@ -279,20 +312,27 @@ def add_trip():
 
     cursor.execute("SELECT * FROM Cars")
     cars = cursor.fetchall()
+    conn.close()
 
     return render_template("add_trip.html", drivers=drivers, cars=cars)
 
 #Xoa chuyen di
 @app.route("/delete_trip/<id>")
 def delete_trip(id):
+    conn = get_db()
+    cursor = conn.cursor()
+
 
     cursor.execute("DELETE FROM Trips WHERE trip_id=?", (id,))
     conn.commit()
-
+    conn.close()
     return redirect("/trips")
 #Sua chuyen di
 @app.route("/edit_trip/<id>", methods=["GET","POST"])
 def edit_trip(id):
+    conn = get_db()
+    cursor = conn.cursor()
+
 
     if request.method == "POST":
 
@@ -309,6 +349,7 @@ def edit_trip(id):
         """, (driver_id,car_id,pickup,dropoff,date,id))
 
         conn.commit()
+        conn.close()
 
         return redirect("/trips")
 
@@ -318,14 +359,15 @@ def edit_trip(id):
     cursor.execute("SELECT * FROM Cars")
     cars = cursor.fetchall()
 
-    cursor.execute("SELECT * FROM Trips WHERE trip_id=?", id)
+    cursor.execute("SELECT * FROM Trips WHERE trip_id=?", (id,))
     trip = cursor.fetchone()
+    conn.close()
 
     return render_template("edit_trip.html", trip=trip, drivers=drivers, cars=cars)
 
 
 
 
-if __name__=="__main__":
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
 
