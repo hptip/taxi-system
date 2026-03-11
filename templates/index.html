@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h3>Danh sách lái xe</h3>
+
+<a href="/add" class="btn btn-success mb-3">+ Thêm lái xe</a>
+
+<table class="table table-bordered table-striped table-hover">
+    <thead class="table-dark">
+    <tr>
+        <th>ID</th>
+        <th>Tên</th>
+        <th>Điện thoại</th>
+        <th>Bằng lái</th>
+        <th>Trạng thái</th>
+        <th>Thao tác</th>
+
+    </tr>
+</thead>
+        
+<tr>
+
+
+
+</tr>
+
+{% for d in drivers %}
+
+<tr>
+
+<td>{{d.driver_id}}</td>
+<td>{{d.name}}</td>
+<td>{{d.phone}}</td>
+<td>{{d.license_number}}</td>
+<td>{{d.status}}</td>
+
+<td>
+
+<a href="/edit/{{d.driver_id}}" class="btn btn-warning btn-sm">Sửa</a>
+
+<a href="/delete/{{d.driver_id}}" class="btn btn-danger btn-sm">Xóa</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% endblock %}

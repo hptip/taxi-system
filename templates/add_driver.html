@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h3>Thêm tài xế</h3>
+
+<form method="POST">
+
+<div class="mb-3">
+<label>Tên </label>
+<input type="text" name="name" class="form-control">
+</div>
+
+<div class="mb-3">
+<label>Số điện thoại</label>
+<input type="text" name="phone" class="form-control">
+</div>
+
+<div class="mb-3">
+<label>Số bằng lái</label>
+<input type="text" name="license" class="form-control">
+</div>
+
+<div class="mb-3">
+<label>Trạng thái</label>
+
+<select name="status" class="form-control">
+
+<option value="Khỏe">Khỏe</option>
+<option value="Ốm">Ốm</option>
+<option value="Nghỉ">Nghỉ</option>
+
+</select>
+</div>
+
+<button class="btn btn-success">Thêm</button>
+
+<a href="/" class="btn btn-secondary">Quay lại</a>
+
+</form>
+
+{% endblock %}

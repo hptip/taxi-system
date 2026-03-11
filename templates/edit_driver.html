@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h3>Sửa thông tin tài xế</h3>
+
+<form method="POST">
+
+<div class="mb-3">
+<label>Tên </label>
+<input type="text" name="name" class="form-control" value="{{driver.name}}">
+</div>
+
+<div class="mb-3">
+<label>Số điện thoại</label>
+<input type="text" name="phone" class="form-control" value="{{driver.phone}}">
+</div>
+
+<div class="mb-3">
+<label>Số bằng lái</label>
+<input type="text" name="license" class="form-control" value="{{driver.license_number}}">
+</div>
+
+<div class="mb-3">
+<label>Trạng thái</label>
+
+<select name="status" class="form-control">
+
+<option value="Khỏe" {% if driver.status=="Khỏe" %}selected{% endif %}>
+Khỏe
+</option>
+
+<option value="Ốm" {% if driver.status=="Ốm" %}selected{% endif %}>
+Ốm
+</option>
+
+<option value="Nghỉ" {% if driver.status=="Nghỉ" %}selected{% endif %}>
+Nghỉ
+</option>
+
+</select>
+</div>
+
+<button class="btn btn-warning">Cập nhật</button>
+
+<a href="/" class="btn btn-secondary">Quay lại</a>
+
+</form>
+
+{% endblock %}

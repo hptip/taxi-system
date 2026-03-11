@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h3>Sửa chuyến đi</h3>
+
+<form method="POST">
+
+<label>Lái xe</label>
+<select name="driver_id" class="form-control">
+
+{% for d in drivers %}
+<option value="{{d.driver_id}}"
+{% if d.driver_id == trip.driver_id %} selected {% endif %}
+>
+{{d.name}}
+</option>
+{% endfor %}
+
+</select>
+
+<br>
+
+<label>Xe</label>
+<select name="car_id" class="form-control">
+
+{% for c in cars %}
+<option value="{{c.car_id}}"
+{% if c.car_id == trip.car_id %} selected {% endif %}
+>
+{{c.plate_number}}
+</option>
+{% endfor %}
+
+</select>
+
+<br>
+
+<label>Điểm đón</label>
+<input type="text" name="pickup" value="{{trip.pickup_location}}" class="form-control">
+
+<br>
+
+<label>Điểm đến</label>
+<input type="text" name="dropoff" value="{{trip.dropoff_location}}" class="form-control">
+
+<br>
+
+<div class="mb-3">
+<label>Thời gian bắt đầu</label>
+<input type="datetime-local" name="start_time" class="form-control" required>
+</div>
+
+<div class="mb-3">
+<label>Thời gian kết thúc</label>
+<input type="datetime-local" name="end_time" class="form-control" required>
+</div>
+
+<button class="btn btn-success">Cập nhật</button>
+
+<a href="/trips" class="btn btn-secondary">Quay lại</a>
+
+</form>
+
+{% endblock %}

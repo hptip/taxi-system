@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h3>Thêm chuyến đi</h3>
+
+<form method="POST">
+
+<div class="mb-3">
+<label>Lái xe</label>
+
+<select name="driver_id" class="form-control">
+
+{% for d in drivers %}
+<option value="{{d.driver_id}}">{{d.name}}</option>
+{% endfor %}
+
+</select>
+
+</div>
+
+<div class="mb-3">
+<label>Xe</label>
+
+<select name="car_id" class="form-control">
+
+{% for c in cars %}
+<option value="{{c.car_id}}">{{c.plate_number}}</option>
+{% endfor %}
+
+</select>
+
+</div>
+
+<div class="mb-3">
+<label>Điểm đón</label>
+<input type="text" name="pickup" class="form-control">
+</div>
+
+<div class="mb-3">
+<label>Điểm trả</label>
+<input type="text" name="dropoff" class="form-control">
+</div>
+
+<div class="mb-3">
+<label>Thời gian bắt đầu</label>
+<input type="datetime-local" name="start_time" class="form-control" required>
+</div>
+
+<div class="mb-3">
+<label>Thời gian kết thúc</label>
+<input type="datetime-local" name="end_time" class="form-control" required>
+</div>
+
+<button class="btn btn-success">Thêm chuyến</button>
+
+<a href="/trips" class="btn btn-secondary">Quay lại</a>
+
+</form>
+
+{% endblock %}

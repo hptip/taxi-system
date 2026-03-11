@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h3>Sửa thông tin xe</h3>
+
+<form method="POST">
+
+<div class="mb-3">
+
+<label>Biển số</label>
+<input type="text" name="plate" class="form-control" value="{{car.plate_number}}">
+
+</div>
+
+<div class="mb-3">
+
+<label>Model xe</label>
+<input type="text" name="model" class="form-control" value="{{car.car_model}}">
+
+</div>
+
+<div class="mb-3">
+
+<label>Trạng thái</label>
+<select name="status" class="form-control">
+
+<option value="Hoạt động">Hoạt động</option>
+<option value="Hỏng">Hỏng</option>
+<option value="Bảo dưỡng">Bảo dưỡng</option>
+
+</select>
+
+</div>
+
+<button class="btn btn-success">Lưu</button>
+
+<a href="/cars" class="btn btn-secondary">Quay lại</a>
+
+</form>
+
+{% endblock %}

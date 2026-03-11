@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h3>Thêm xe</h3>
+
+<form method="POST">
+
+<div class="mb-3">
+<label>Biển số xe</label>
+<input type="text" name="plate" class="form-control">
+</div>
+
+<div class="mb-3">
+<label>Mẫu xe</label>
+<input type="text" name="model" class="form-control">
+</div>
+
+<div class="mb-3">
+<label>Trạng thái</label>
+<select name="status" class="form-control">
+
+<option value="Hoạt động">Hoạt động</option>
+<option value="Hỏng">Hỏng</option>
+<option value="Bảo dưỡng">Bảo dưỡng</option>
+
+</select>
+</div>
+
+<button class="btn btn-success">Thêm</button>
+
+<a href="/cars" class="btn btn-secondary">Quay lại</a>
+
+</form>
+
+{% endblock %}

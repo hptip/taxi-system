@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h3>Danh sách xe</h3>
+
+<a href="/add_car" class="btn btn-success mb-3">+ Thêm xe</a>
+
+<table class="table table-bordered table-striped table-hover">
+    <thead class="table-dark">
+        <tr>
+                <th>Mã xe</th>
+                <th>Biển số</th>
+                <th>Loại xe</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+        </tr>
+    </thead>
+
+
+
+{% for c in cars %}
+
+<tr>
+
+<td>{{c.car_id}}</td>
+<td>{{c.plate_number}}</td>
+<td>{{c.car_model}}</td>
+<td>{{c.status}}</td>
+
+<td>
+
+<a href="/edit_car/{{c.car_id}}" class="btn btn-warning btn-sm">Sửa</a>
+
+<a href="/delete_car/{{c.car_id}}" class="btn btn-danger btn-sm">Xóa</a>
+
+</td>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% endblock %}

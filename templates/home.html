@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h2 class="mb-4">🚕 Trang chủ hệ thống Taxi</h2>
+
+<div class="row">
+
+    <div class="col-md-4">
+        <div class="card text-center shadow">
+            <div class="card-body">
+                <h5 class="card-title">Tài xế</h5>
+                <h2>{{ driver_count }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center shadow">
+            <div class="card-body">
+                <h5 class="card-title">Xe</h5>
+                <h2>{{ car_count }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center shadow">
+            <div class="card-body">
+                <h5 class="card-title">Chuyến đi</h5>
+                <h2>{{ trip_count }}</h2>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
