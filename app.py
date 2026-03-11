@@ -258,8 +258,13 @@ def add_trip():
         dropoff = request.form["dropoff"]
         start_time = request.form["start_time"]
         end_time = request.form["end_time"]
-        start_time = datetime.fromisoformat(start_time)
-        end_time = datetime.fromisoformat(end_time)
+        start_time = datetime.strptime(start_time, "%Y-%m-%dT%H:%M")
+        end_time = datetime.strptime(end_time, "%Y-%m-%dT%H:%M")
+        #check time hop le
+        if end_time <= start_time:
+            flash("Thời gian kết thúc phải sau thời gian bắt đầu!", "danger")
+            conn.close()
+            return redirect("/add_trip")
 
         #Tai xe om hoac nghi
         cursor.execute("SELECT status FROM Drivers WHERE driver_id=?", (driver_id,))
@@ -345,9 +350,9 @@ def delete_trip(id):
 #Sua chuyen di
 @app.route("/edit_trip/<id>", methods=["GET","POST"])
 def edit_trip(id):
+
     conn = get_db()
     cursor = conn.cursor()
-
 
     if request.method == "POST":
 
@@ -355,17 +360,80 @@ def edit_trip(id):
         car_id = request.form["car_id"]
         pickup = request.form["pickup"]
         dropoff = request.form["dropoff"]
-        date = request.form["date"]
+        start_time = request.form["start_time"]
+        end_time = request.form["end_time"]
 
+        start_time = datetime.strptime(start_time,"%Y-%m-%dT%H:%M")
+        end_time = datetime.strptime(end_time,"%Y-%m-%dT%H:%M")
+        #check time hop le
+        if end_time <= start_time:
+            flash("Thời gian kết thúc phải sau thời gian bắt đầu!", "danger")
+            return redirect(f"/edit_trip/{id}")
+
+        # kiểm tra tài xế
+        cursor.execute("SELECT status FROM Drivers WHERE driver_id=?", (driver_id,))
+        driver_status = cursor.fetchone()[0]
+
+        if driver_status != "Khỏe":
+            flash("Tài xế đang nghỉ hoặc ốm!", "danger")
+            return redirect(f"/edit_trip/{id}")
+
+        # kiểm tra xe
+        cursor.execute("SELECT status FROM Cars WHERE car_id=?", (car_id,))
+        car_status = cursor.fetchone()[0]
+
+        if car_status != "Hoạt động":
+            flash("Xe đang bảo dưỡng hoặc hỏng!", "danger")
+            return redirect(f"/edit_trip/{id}")
+
+        # kiểm tra trùng chuyến tài xế
+        cursor.execute("""
+        SELECT start_time,end_time
+        FROM Trips
+        WHERE driver_id=? AND trip_id != ?
+        """,(driver_id,id))
+
+        trips = cursor.fetchall()
+
+        for trip in trips:
+
+            old_start = datetime.fromisoformat(trip["start_time"])
+            old_end = datetime.fromisoformat(trip["end_time"])
+
+            if start_time < old_end and end_time > old_start:
+                flash("Tài xế đã có chuyến trong khoảng thời gian này!", "danger")
+                return redirect(f"/edit_trip/{id}")
+
+        # kiểm tra trùng xe
+        cursor.execute("""
+        SELECT *
+        FROM Trips
+        WHERE car_id=? AND trip_id != ?
+        AND (? < end_time AND ? > start_time)
+        """,(car_id,id,start_time,end_time))
+
+        exist_car = cursor.fetchone()
+
+        if exist_car:
+            flash("Xe đã có chuyến trong khoảng thời gian này!", "danger")
+            return redirect(f"/edit_trip/{id}")
+
+        # cập nhật
         cursor.execute("""
         UPDATE Trips
-        SET driver_id=?, car_id=?, pickup_location=?, dropoff_location=?, trip_date=?
+        SET driver_id=?,
+            car_id=?,
+            pickup_location=?,
+            dropoff_location=?,
+            start_time=?,
+            end_time=?
         WHERE trip_id=?
-        """, (driver_id,car_id,pickup,dropoff,date,id))
+        """,(driver_id,car_id,pickup,dropoff,start_time,end_time,id))
 
         conn.commit()
         conn.close()
 
+        flash("Cập nhật chuyến đi thành công!", "success")
         return redirect("/trips")
 
     cursor.execute("SELECT * FROM Drivers")
@@ -376,9 +444,10 @@ def edit_trip(id):
 
     cursor.execute("SELECT * FROM Trips WHERE trip_id=?", (id,))
     trip = cursor.fetchone()
+
     conn.close()
 
-    return render_template("edit_trip.html", trip=trip, drivers=drivers, cars=cars)
+    return render_template("edit_trip.html",trip=trip,drivers=drivers,cars=cars)
 
 
 

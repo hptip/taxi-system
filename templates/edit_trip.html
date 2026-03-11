@@ -6,57 +6,77 @@
 
 <form method="POST">
 
-<label>Lái xe</label>
+<div class="mb-3">
+<label>Tài xế</label>
+
 <select name="driver_id" class="form-control">
 
 {% for d in drivers %}
 <option value="{{d.driver_id}}"
-{% if d.driver_id == trip.driver_id %} selected {% endif %}
->
+{% if d.driver_id == trip.driver_id %}selected{% endif %}>
 {{d.name}}
 </option>
 {% endfor %}
 
 </select>
 
-<br>
+</div>
 
+
+<div class="mb-3">
 <label>Xe</label>
+
 <select name="car_id" class="form-control">
 
 {% for c in cars %}
 <option value="{{c.car_id}}"
-{% if c.car_id == trip.car_id %} selected {% endif %}
->
+{% if c.car_id == trip.car_id %}selected{% endif %}>
 {{c.plate_number}}
 </option>
 {% endfor %}
 
 </select>
 
-<br>
+</div>
 
+
+<div class="mb-3">
 <label>Điểm đón</label>
-<input type="text" name="pickup" value="{{trip.pickup_location}}" class="form-control">
+<input type="text"
+name="pickup"
+value="{{trip.pickup_location}}"
+class="form-control">
+</div>
 
-<br>
 
-<label>Điểm đến</label>
-<input type="text" name="dropoff" value="{{trip.dropoff_location}}" class="form-control">
+<div class="mb-3">
+<label>Điểm trả</label>
+<input type="text"
+name="dropoff"
+value="{{trip.dropoff_location}}"
+class="form-control">
+</div>
 
-<br>
 
 <div class="mb-3">
 <label>Thời gian bắt đầu</label>
-<input type="datetime-local" name="start_time" class="form-control" required>
+<input type="datetime-local"
+name="start_time"
+value="{{trip.start_time}}"
+class="form-control">
 </div>
+
 
 <div class="mb-3">
 <label>Thời gian kết thúc</label>
-<input type="datetime-local" name="end_time" class="form-control" required>
+<input type="datetime-local"
+name="end_time"
+value="{{trip.end_time}}"
+class="form-control">
 </div>
 
-<button class="btn btn-success">Cập nhật</button>
+
+<button class="btn btn-primary">Cập nhật</button>
 
 <a href="/trips" class="btn btn-secondary">Quay lại</a>
 
