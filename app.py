@@ -205,23 +205,43 @@ def trips():
     conn = get_db()
     cursor = conn.cursor()
 
-
     cursor.execute("""
     SELECT t.trip_id,
-        d.name as driver_name,
-        c.plate_number as license_plate,
-        t.pickup_location,
-        t.dropoff_location,
-        t.start_time,
-        t.end_time
+           d.name as driver_name,
+           c.plate_number as license_plate,
+           t.pickup_location,
+           t.dropoff_location,
+           t.start_time,
+           t.end_time
     FROM Trips t
     JOIN Drivers d ON t.driver_id = d.driver_id
     JOIN Cars c ON t.car_id = c.car_id
     """)
 
-    trips = cursor.fetchall()
+    rows = cursor.fetchall()
     conn.close()
-    return render_template("trips.html", trips=trips, now=datetime.now())
+
+    trips = []
+    now = datetime.now()
+
+    for r in rows:
+
+        start = datetime.fromisoformat(r["start_time"])
+        end = datetime.fromisoformat(r["end_time"])
+
+        if now < start:
+            status = "Chưa bắt đầu"
+        elif start <= now <= end:
+            status = "Đang chạy"
+        else:
+            status = "Hoàn thành"
+
+        trip = dict(r)
+        trip["status"] = status
+
+        trips.append(trip)
+
+    return render_template("trips.html", trips=trips)
 
 #Them chuyen di
 @app.route("/add_trip", methods=["GET","POST"])
