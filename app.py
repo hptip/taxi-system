@@ -268,10 +268,8 @@ def add_trip():
         trips = cursor.fetchall()
 
         for trip in trips:
-
-            old_start = trip[0]
-            old_end = trip[1]
-
+            old_start = datetime.fromisoformat(trip["start_time"])
+            old_end = datetime.fromisoformat(trip["end_time"])
             if start_time < old_end and end_time > old_start:
 
                 flash("Tài xế đã có chuyến trong khoảng thời gian này!", "danger")
