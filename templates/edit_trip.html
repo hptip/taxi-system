@@ -19,7 +19,6 @@
 {% endfor %}
 
 </select>
-
 </div>
 
 
@@ -45,7 +44,8 @@
 <input type="text"
 name="pickup"
 value="{{trip.pickup_location}}"
-class="form-control">
+class="form-control"
+required>
 </div>
 
 
@@ -54,7 +54,8 @@ class="form-control">
 <input type="text"
 name="dropoff"
 value="{{trip.dropoff_location}}"
-class="form-control">
+class="form-control"
+required>
 </div>
 
 
@@ -62,11 +63,10 @@ class="form-control">
 <label>Thời gian bắt đầu</label>
 <input type="datetime-local"
 name="start_time"
-value="{{trip.start_time}}"
-class="form-control">
+value="{{trip.start_time[:16]|replace(' ','T')}}"
+class="form-control"
+required>
 </div>
-
-
 
 
 <button class="btn btn-primary">Cập nhật</button>

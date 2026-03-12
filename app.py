@@ -44,9 +44,6 @@ def calculate_route(pickup, dropoff):
         distance = data["routes"][0]["distance"] / 1000
         duration = data["routes"][0]["duration"] / 60
 
-        # chỉnh gần Google Maps
-        distance = distance * 0.85
-
         return round(distance,2), round(duration,1)
 
     except Exception as e:
@@ -122,16 +119,26 @@ def add_driver():
 
 
 # Xóa lái xe
-@app.route("/delete_driver/<id>")
+@app.route("/delete_driver/<int:id>")
 def delete_driver(id):
+
     conn = get_db()
     cursor = conn.cursor()
 
+    # kiểm tra driver có trip không
+    cursor.execute("SELECT * FROM Trips WHERE driver_id=?", (id,))
+    trip = cursor.fetchone()
+
+    if trip:
+        flash("Không thể xóa tài xế vì đang có chuyến đi!", "danger")
+        conn.close()
+        return redirect("/drivers")
 
     cursor.execute("DELETE FROM Drivers WHERE driver_id=?", (id,))
     conn.commit()
     conn.close()
 
+    flash("Xóa tài xế thành công!", "success")
     return redirect("/drivers")
 
 
@@ -234,6 +241,13 @@ def edit_car(id):
 def delete_car(id):
     conn = get_db()
     cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Trips WHERE car_id=?", (id,))
+    trip = cursor.fetchone()
+
+    if trip:
+        flash("Không thể xóa xe vì đang có chuyến!", "danger")
+        conn.close()
+        return redirect("/cars")
 
 
     cursor.execute("DELETE FROM Cars WHERE car_id=?", (id,))
@@ -260,6 +274,7 @@ def trips():
     FROM Trips t
     JOIN Drivers d ON t.driver_id = d.driver_id
     JOIN Cars c ON t.car_id = c.car_id
+    ORDER BY t.start_time DESC
     """)
 
     rows = cursor.fetchall()
@@ -289,11 +304,80 @@ def trips():
 
     return render_template("trips.html", trips=trips)
 
+#Ham check trip conflict
+def check_trip_conflict(cursor, driver_id, car_id, start_time, end_time, exclude_trip=None):
+
+    buffer_minutes = 15
+
+    # kiểm tra tài xế
+    if exclude_trip:
+        cursor.execute("""
+        SELECT start_time,end_time
+        FROM Trips
+        WHERE driver_id=? AND trip_id != ?
+        """,(driver_id,exclude_trip))
+    else:
+        cursor.execute("""
+        SELECT start_time,end_time
+        FROM Trips
+        WHERE driver_id=?
+        """,(driver_id,))
+
+    trips = cursor.fetchall()
+
+    for trip in trips:
+
+        old_start = datetime.fromisoformat(trip["start_time"])
+        old_end = datetime.fromisoformat(trip["end_time"])
+
+        safe_end = old_end + timedelta(minutes=buffer_minutes)
+
+        if start_time < safe_end and end_time > old_start:
+            return "Tài xế đã có chuyến trong khoảng thời gian này!"
+
+    # kiểm tra xe
+    if exclude_trip:
+        cursor.execute("""
+        SELECT start_time,end_time
+        FROM Trips
+        WHERE car_id=? AND trip_id != ?
+        """,(car_id,exclude_trip))
+    else:
+        cursor.execute("""
+        SELECT start_time,end_time
+        FROM Trips
+        WHERE car_id=?
+        """,(car_id,))
+
+    trips = cursor.fetchall()
+
+    for trip in trips:
+
+        old_start = datetime.fromisoformat(trip["start_time"])
+        old_end = datetime.fromisoformat(trip["end_time"])
+
+        safe_end = old_end + timedelta(minutes=buffer_minutes)
+
+        if start_time < safe_end and end_time > old_start:
+            return "Xe đã có chuyến trong khoảng thời gian này!"
+
+    return None
 #Them chuyen di
 @app.route("/add_trip", methods=["GET","POST"])
 def add_trip():
     conn = get_db()
     cursor = conn.cursor()
+    # kiểm tra tài xế và xe
+    cursor.execute("SELECT COUNT(*) FROM Drivers WHERE status='Khỏe'")
+    available_drivers = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM Cars WHERE status='Hoạt động'")
+    available_cars = cursor.fetchone()[0]
+
+    if available_drivers == 0 or available_cars == 0:
+        flash("Không thể tạo chuyến: không có tài xế sẵn sàng hoặc không có xe hoạt động!", "danger")
+        conn.close()
+        return redirect("/trips")
 
 
     if request.method == "POST":
@@ -305,6 +389,11 @@ def add_trip():
         start_time = request.form["start_time"]
 
         start_time = datetime.strptime(start_time,"%Y-%m-%dT%H:%M")
+        #check trung dia diem
+        if pickup.strip() == dropoff.strip():
+            flash("Điểm đón và điểm trả không được giống nhau!", "danger")
+            conn.close()
+            return redirect("/add_trip")
         #check thoi gian
         now = datetime.now()
 
@@ -351,46 +440,13 @@ def add_trip():
         
         
         #Check trung chuyen
-        cursor.execute("""
-        SELECT start_time,end_time
-        FROM Trips
-        WHERE driver_id=?
-        """,(driver_id,))
+        error = check_trip_conflict(cursor, driver_id, car_id, start_time, end_time)
 
-        trips = cursor.fetchall()
-
-        for trip in trips:
-
-            old_start = datetime.fromisoformat(trip["start_time"])
-            old_end = datetime.fromisoformat(trip["end_time"])
-
-            safe_end = old_end + timedelta(minutes=buffer_minutes)
-
-            if start_time < safe_end and end_time > old_start:
-
-                flash("Tài xế chưa đủ thời gian nghỉ giữa các chuyến!", "danger")
-                conn.close()
-                return redirect("/add_trip")
-        #Xe trung chuyen
-        cursor.execute("""
-        SELECT start_time,end_time
-        FROM Trips
-        WHERE car_id=?
-        """,(car_id,))
-
-        car_trips = cursor.fetchall()
-        for trip in car_trips:
-
-            old_start = datetime.fromisoformat(trip["start_time"])
-            old_end = datetime.fromisoformat(trip["end_time"])
-
-            safe_end = old_end + timedelta(minutes=buffer_minutes)
-
-            if start_time < safe_end and end_time > old_start:
-
-                flash("Xe chưa sẵn sàng cho chuyến mới!", "danger")
-                conn.close()
-                return redirect("/add_trip")
+        if error:
+            flash(error, "danger")
+            conn.close()
+            return redirect("/add_trip")
+        
 
         cursor.execute(
         """INSERT INTO Trips(driver_id,car_id,pickup_location,dropoff_location,start_time,end_time,distance,price)
@@ -404,25 +460,47 @@ def add_trip():
         conn.close()
         return redirect("/trips")
 
-    cursor.execute("SELECT * FROM Drivers")
+    cursor.execute("SELECT * FROM Drivers WHERE status='Khỏe'")
     drivers = cursor.fetchall()
 
-    cursor.execute("SELECT * FROM Cars")
+    cursor.execute("SELECT * FROM Cars WHERE status='Hoạt động'")
     cars = cursor.fetchall()
     conn.close()
 
     return render_template("add_trip.html", drivers=drivers, cars=cars)
 
 #Xoa chuyen di
-@app.route("/delete_trip/<id>")
+@app.route("/delete_trip/<int:id>")
 def delete_trip(id):
+
     conn = get_db()
     cursor = conn.cursor()
 
+    cursor.execute(
+        "SELECT start_time, end_time FROM Trips WHERE trip_id=?",
+        (id,)
+    )
 
-    cursor.execute("DELETE FROM Trips WHERE trip_id=?", (id,))
-    conn.commit()
+    trip = cursor.fetchone()
+
+    if trip:
+
+        start = datetime.fromisoformat(trip["start_time"])
+        end = datetime.fromisoformat(trip["end_time"])
+        now = datetime.now()
+
+        if start <= now <= end:
+            flash("Không thể xóa chuyến đang chạy!", "danger")
+            conn.close()
+            return redirect("/trips")
+
+        cursor.execute("DELETE FROM Trips WHERE trip_id=?", (id,))
+        conn.commit()
+
+        flash("Xóa chuyến thành công!", "success")
+
     conn.close()
+
     return redirect("/trips")
 #Sua chuyen di
 @app.route("/edit_trip/<id>", methods=["GET","POST"])
@@ -440,6 +518,11 @@ def edit_trip(id):
         start_time = request.form["start_time"]
 
         start_time = datetime.strptime(start_time,"%Y-%m-%dT%H:%M")
+        #check trung dia diem
+        if pickup.strip() == dropoff.strip():
+            flash("Điểm đón và điểm trả không được giống nhau!", "danger")
+            conn.close()
+            return redirect("/edit_trip")
         #check thoi gian
         now = datetime.now()
 
@@ -479,49 +562,12 @@ def edit_trip(id):
             conn.close()
             return redirect(f"/edit_trip/{id}")
 
-        # kiểm tra trùng chuyến tài xế
-        cursor.execute("""
-        SELECT start_time,end_time
-        FROM Trips
-        WHERE driver_id=? AND trip_id != ?
-        """,(driver_id,id))
+        error = check_trip_conflict(cursor, driver_id, car_id, start_time, end_time, id)
 
-        trips = cursor.fetchall()
-        buffer_minutes = 15
-
-        for trip in trips:
-
-            old_start = datetime.fromisoformat(trip["start_time"])
-            old_end = datetime.fromisoformat(trip["end_time"])
-
-            
-            safe_end = old_end + timedelta(minutes=buffer_minutes)
-
-            if start_time < safe_end and end_time > old_start:  
-                flash("Tài xế đã có chuyến trong khoảng thời gian này!", "danger")
-                conn.close()
-                return redirect(f"/edit_trip/{id}")
-
-        # kiểm tra trùng xe
-        cursor.execute("""
-        SELECT start_time,end_time
-        FROM Trips
-        WHERE car_id=? AND trip_id != ?
-        """,(car_id,id))
-
-        car_trips = cursor.fetchall()
-
-        for trip in car_trips:
-
-            old_start = datetime.fromisoformat(trip["start_time"])
-            old_end = datetime.fromisoformat(trip["end_time"])
-
-            safe_end = old_end + timedelta(minutes=buffer_minutes)
-
-            if start_time < safe_end and end_time > old_start:
-                flash("Xe chưa sẵn sàng cho chuyến mới!", "danger")
-                conn.close()
-                return redirect(f"/edit_trip/{id}")
+        if error:
+            flash(error, "danger")
+            conn.close()
+            return redirect(f"/edit_trip/{id}")
 
         # cập nhật
         cursor.execute("""
@@ -562,4 +608,4 @@ def edit_trip(id):
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
