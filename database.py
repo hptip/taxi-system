@@ -31,8 +31,11 @@ CREATE TABLE IF NOT EXISTS Trips (
     FOREIGN KEY(driver_id) REFERENCES Drivers(driver_id),
     FOREIGN KEY(car_id) REFERENCES Cars(car_id)
 );
+ALTER TABLE Trips ADD COLUMN distance REAL;
+ALTER TABLE Trips ADD COLUMN price REAL;
 
 """)
+
 
 conn.commit()
 conn.close()

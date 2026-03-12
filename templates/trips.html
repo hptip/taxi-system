@@ -17,7 +17,10 @@
             <th>Điểm đến</th>
             <th>Bắt đầu</th>
             <th>Kết thúc</th>
+            <th>Khoảng cách</th>
+            <th>Giá</th>
             <th>Trạng thái</th>
+            <th>Map</th> <!-- thêm cột -->
             <th>Hành động</th>
         </tr>
     </thead>
@@ -40,17 +43,34 @@
 
             <td>{{ trip.end_time }}</td>
 
+            <td>{{ trip.distance or 0 }} km</td>
+
+            <td>{{ "{:,.0f}".format(trip.price or 0) }} VND</td>
+
             <td>
-    {% if trip.status == "Chưa bắt đầu" %}
-        <span class="badge bg-warning text-dark">Chưa bắt đầu</span>
+                {% if trip.status == "Chưa bắt đầu" %}
+                    <span class="badge bg-warning text-dark">Chưa bắt đầu</span>
 
-    {% elif trip.status == "Đang chạy" %}
-        <span class="badge bg-primary">Đang chạy</span>
+                {% elif trip.status == "Đang chạy" %}
+                    <span class="badge bg-primary">Đang chạy</span>
 
-    {% else %}
-        <span class="badge bg-success">Hoàn thành</span>
-    {% endif %}
-</td>
+                {% else %}
+                    <span class="badge bg-success">Hoàn thành</span>
+                {% endif %}
+            </td>
+
+            <!-- Google Maps -->
+            <td>
+                <a 
+                href="https://www.google.com/maps/dir/{{ trip.pickup_location | urlencode }}/{{ trip.dropoff_location | urlencode }}"
+                target="_blank"
+                class="btn btn-sm btn-info">
+
+
+                Xem đường
+
+                </a>
+            </td>
 
             <td>
                 <a href="/edit_trip/{{ trip.trip_id }}" class="btn btn-sm btn-primary">Sửa</a>
