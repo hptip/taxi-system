@@ -43,6 +43,7 @@ def calculate_route(pickup, dropoff):
 
         distance = data["routes"][0]["distance"] / 1000
         duration = data["routes"][0]["duration"] / 60
+        duration *=1.4
 
         return round(distance,2), round(duration,1)
 
