@@ -35,8 +35,19 @@
 <div class="main">
 
 <!-- Header -->
-<div class="header">
-<h4>Hệ thống quản lý Taxi</h4>
+<div class="header d-flex align-items-center">
+
+    <!-- Tiêu đề bên trái -->
+    <div>
+        <h4 class="mb-0">Hệ thống quản lý Taxi</h4>
+    </div>
+
+    <!-- User bên phải -->
+    <div class="ms-auto">
+        <i class="bi bi-person-circle"></i> {{ session["user"] }} ({{ session["role"] }})
+        <a href="/logout" class="btn btn-sm btn-danger ms-2">Logout</a>
+    </div>
+
 </div>
 
 <!-- Content -->

@@ -1,0 +1,31 @@
+{% extends "auth_layout.html" %}
+
+{% block content %}
+
+<div class="card p-4 shadow" style="max-width: 400px; margin:auto; border-radius:15px;">
+    <h4 class="text-center mb-3">🚕 Đăng nhập</h4>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="alert alert-danger">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        <div class="mb-3">
+            <label>Tài khoản</label>
+            <input type="text" name="username" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label>Mật khẩu</label>
+            <input type="password" name="password" class="form-control" required>
+        </div>
+
+        <button class="btn btn-primary w-100">Đăng nhập</button>
+    </form>
+</div>
+
+{% endblock %}

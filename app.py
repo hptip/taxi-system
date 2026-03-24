@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, flash
+from flask import Flask, render_template, request, redirect, flash, session
 import sqlite3
 from geopy.geocoders import Nominatim   
 from datetime import datetime,timedelta
@@ -53,12 +53,48 @@ def calculate_route(pickup, dropoff):
 
 
 
+#Dang nhap
+@app.route("/login", methods=["GET","POST"])
+def login():
+
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+
+        db = get_db()
+
+        user = db.execute(
+            "SELECT * FROM users WHERE username=? AND password=?",
+            (username, password)
+        ).fetchone()
+
+        if user:
+            session["user"] = user["username"]
+            session["role"] = user["role"]
+
+            return redirect("/")
+        else:
+            flash("Sai tài khoản hoặc mật khẩu")
+
+    return render_template("login.html")
+
+#Dang xuat
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/login")
+
 
 
 # Trang chủ - hiển thị danh sách lái xe
 
 @app.route("/")
 def home():
+   
+#Kiem tra da dang nhap hay chua
+    if "user" not in session:
+        return redirect("/login")
+
     conn = get_db()
     cursor = conn.cursor()
 
@@ -81,6 +117,8 @@ def home():
 
 @app.route("/drivers")
 def index():
+    if "user" not in session:
+        return redirect("/login")
     conn = get_db()
     cursor = conn.cursor()
 
@@ -97,7 +135,12 @@ def index():
 def add_driver():
     conn = get_db()
     cursor = conn.cursor()
+    if "user" not in session:
+        return redirect("/login")
 
+    if session["role"] != "admin":
+        flash("Không có quyền hạn","danger")
+        return redirect("/drivers")
 
     if request.method == "POST":
 
@@ -122,7 +165,12 @@ def add_driver():
 # Xóa lái xe
 @app.route("/delete_driver/<int:id>")
 def delete_driver(id):
+    if "user" not in session:
+        return redirect("/login")
 
+    if session["role"] != "admin":
+        flash("Không có quyền hạn","danger")
+        return redirect("/drivers")
     conn = get_db()
     cursor = conn.cursor()
 
@@ -148,6 +196,12 @@ def delete_driver(id):
 def edit_driver(id):
     conn = get_db()
     cursor = conn.cursor()
+    if "user" not in session:
+        return redirect("/login")
+
+    if session["role"] != "admin":
+        flash("Không có quyền hạn","danger")
+        return redirect("/drivers")
 
 
     if request.method=="POST":
@@ -175,6 +229,8 @@ def edit_driver(id):
 #Hien thi danh sach xe
 @app.route("/cars")
 def cars():
+    if "user" not in session:
+        return redirect("/login")
     conn = get_db()
     cursor = conn.cursor()
 
@@ -188,6 +244,12 @@ def cars():
 #Them xe
 @app.route("/add_car", methods=["GET","POST"])
 def add_car():
+    if "user" not in session:
+        return redirect("/login")
+
+    if session["role"] != "admin":
+        flash("Không có quyền hạn","danger")
+        return redirect("/cars")
     conn = get_db()
     cursor = conn.cursor()
 
@@ -213,6 +275,12 @@ def add_car():
 def edit_car(id):
     conn = get_db()
     cursor = conn.cursor()
+    if "user" not in session:
+        return redirect("/login")
+
+    if session["role"] != "admin":
+        flash("Không có quyền hạn","danger")
+        return redirect("/cars")
 
 
     if request.method == "POST":
@@ -240,6 +308,12 @@ def edit_car(id):
 #Xoa xe
 @app.route("/delete_car/<id>")
 def delete_car(id):
+    if "user" not in session:
+        return redirect("/login")
+
+    if session["role"] != "admin":
+        flash("Không có quyền hạn","danger")
+        return redirect("/cars")
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM Trips WHERE car_id=?", (id,))
@@ -254,11 +328,14 @@ def delete_car(id):
     cursor.execute("DELETE FROM Cars WHERE car_id=?", (id,))
     conn.commit()
     conn.close()
+    flash("Xóa xe thành công!", "success")
 
     return redirect("/cars")
 #Danh sach chuyen di
 @app.route("/trips")
 def trips():
+    if "user" not in session:
+        return redirect("/login")
     conn = get_db()
     cursor = conn.cursor()
 
@@ -523,7 +600,7 @@ def edit_trip(id):
         if pickup.strip() == dropoff.strip():
             flash("Điểm đón và điểm trả không được giống nhau!", "danger")
             conn.close()
-            return redirect("/edit_trip")
+            return redirect(f"/edit_trip/{id}")
         #check thoi gian
         now = datetime.now()
 

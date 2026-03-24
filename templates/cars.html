@@ -29,10 +29,18 @@
 <td>{{c.status}}</td>
 
 <td>
+    
+{% if session["role"] == "admin" %}
 
 <a href="/edit_car/{{c.car_id}}" class="btn btn-warning btn-sm">Sửa</a>
 
-<a href="/delete_car/{{c.car_id}}" class="btn btn-danger btn-sm">Xóa</a>
+<a href="{{ url_for('delete_car', id=c.car_id) }}"
+   class="btn btn-danger btn-sm"
+   onclick="return confirm('Bạn chắc chắn muốn xóa?')">
+   Xóa
+</a>
+
+{% endif %}
 
 </td>
 

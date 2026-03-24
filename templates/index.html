@@ -36,7 +36,7 @@
 <td>{{d.status}}</td>
 
 <td>
-
+{% if session["role"] == "admin" %}
 <a href="/edit/{{d.driver_id}}" class="btn btn-warning btn-sm">Sửa</a>
 
 <a href="{{ url_for('delete_driver', id=d.driver_id) }}"
@@ -44,7 +44,7 @@
    onclick="return confirm('Bạn chắc chắn muốn xóa?')">
    Xóa
 </a>
-
+{% endif %}
 </td>
 
 </tr>

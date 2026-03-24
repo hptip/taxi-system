@@ -31,10 +31,23 @@ CREATE TABLE IF NOT EXISTS Trips (
     FOREIGN KEY(driver_id) REFERENCES Drivers(driver_id),
     FOREIGN KEY(car_id) REFERENCES Cars(car_id)
 );
-ALTER TABLE Trips ADD COLUMN distance REAL;
-ALTER TABLE Trips ADD COLUMN price REAL;
+                     
+CREATE TABLE IF NOT EXISTS Users (
+    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT,
+    password TEXT,
+    role TEXT
+);
+
+INSERT INTO users(username,password,role)
+VALUES
+('admin','123','admin'),
+('staff1','123','staff');
+                     
 
 """)
+
+
 
 
 conn.commit()
