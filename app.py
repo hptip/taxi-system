@@ -148,6 +148,10 @@ def add_driver():
         phone = request.form["phone"]
         license = request.form["license"]
         status = request.form["status"]
+        if not name.strip() or not phone.strip() or not license.strip() or not status.strip():
+            flash("Không được để trống thông tin!", "danger")
+            conn.close()
+            return redirect("/add")
 
         cursor.execute(
         "INSERT INTO Drivers (name,phone,license_number,status) VALUES (?,?,?,?)",
@@ -210,6 +214,10 @@ def edit_driver(id):
         phone=request.form["phone"]
         license=request.form["license"]
         status=request.form["status"]
+        if not name.strip() or not phone.strip() or not license.strip() or not status.strip():
+            flash("Không được để trống thông tin!", "danger")
+            conn.close()
+            return redirect(f"/edit/{id}")
 
         cursor.execute(
         "UPDATE Drivers SET name=?,phone=?,license_number=?,status=? WHERE driver_id=?",
@@ -259,6 +267,10 @@ def add_car():
         plate = request.form["plate"]
         model = request.form["model"]
         status = request.form["status"]
+        if not plate.strip() or not model.strip() or not status.strip():
+            flash("Không được để trống thông tin xe!", "danger")
+            conn.close()
+            return redirect("/add_car")
 
         cursor.execute(
         "INSERT INTO Cars (plate_number,car_model,status) VALUES (?,?,?)",
@@ -288,6 +300,10 @@ def edit_car(id):
         plate = request.form["plate"]
         model = request.form["model"]
         status = request.form["status"]
+        if not plate.strip() or not model.strip() or not status.strip():
+            flash("Không được để trống thông tin xe!", "danger")
+            conn.close()
+            return redirect(f"/edit_car/{id}")
 
         cursor.execute(
         "UPDATE Cars SET plate_number=?, car_model=?, status=? WHERE car_id=?",
@@ -465,8 +481,13 @@ def add_trip():
         pickup = request.form["pickup"]
         dropoff = request.form["dropoff"]
         start_time = request.form["start_time"]
-
+    
         start_time = datetime.strptime(start_time,"%Y-%m-%dT%H:%M")
+        #check dia diem rong
+        if not pickup.strip() or not dropoff.strip():
+            flash("Không được để trống địa điểm!", "danger")
+            conn.close()
+            return redirect("/add_trip")
         #check trung dia diem
         if pickup.strip() == dropoff.strip():
             flash("Điểm đón và điểm trả không được giống nhau!", "danger")
@@ -596,6 +617,11 @@ def edit_trip(id):
         start_time = request.form["start_time"]
 
         start_time = datetime.strptime(start_time,"%Y-%m-%dT%H:%M")
+        #check dia diem rong
+        if not pickup.strip() or not dropoff.strip():
+            flash("Không được để trống địa điểm!", "danger")
+            conn.close()
+            return redirect(f"/edit_trip/{id}")
         #check trung dia diem
         if pickup.strip() == dropoff.strip():
             flash("Điểm đón và điểm trả không được giống nhau!", "danger")

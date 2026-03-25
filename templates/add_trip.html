@@ -31,7 +31,8 @@
 <div class="mb-3">
 <label>Lái xe</label>
 
-<select name="driver_id" class="form-control">
+<select name="driver_id" class="form-control" required>
+    <option value="">-- Chọn tài xế --</option>
 
 {% for d in drivers %}
 <option value="{{d.driver_id}}">
@@ -46,7 +47,8 @@
 <div class="mb-3">
 <label>Xe</label>
 
-<select name="car_id" class="form-control">
+<select name="car_id" class="form-control" required>
+    <option value="">-- Chọn xe --</option>
 
 {% for c in cars %}
 <option value="{{c.car_id}}">
